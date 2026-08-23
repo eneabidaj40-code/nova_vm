@@ -1,10 +1,13 @@
 #include<stdio.h>
+#define MEMORY_CAPACITY 1024
 enum Error{
   NO_ERROR,
   STACK_UNDERFLOW,
   STACK_OVERFLOW,
   INVALID_OPCODE,
-  INSTRUCTION_OUT_OF_BOUNDS
+  INSTRUCTION_OUT_OF_BOUNDS,
+  DIVISION_BY_ZERO,
+  MEMORY_OUT_OF_BOUNDS
 };
 struct VM
 {
@@ -13,6 +16,7 @@ struct VM
   int sp;
   int stack[100];
   int executing;
+  int memory[MEMORY_CAPACITY];
   enum Error error;
 };
 
@@ -23,6 +27,12 @@ enum Opcode{
     SUB,
     PRINT,
     JUMP,
+    JZ,//jump to zero 
+    EQUAL,
+    LESS_THAN,
+    GREATER_THAN,
+    DIV,//this is added to handle division by zero
+    STORE,
     HALT
 };
 
@@ -151,28 +161,13 @@ void runVM(struct VM *vm,int program[],int byteCodeSize){
         break;
         }
 
-        case PRINT:
-        {
-          int value=peek(vm);
-          if (vm->error!=NO_ERROR)
-          {
-            break;
-          }
-          else{
-          printf("Value is: %d\n",value);
-          vm->ip++;
-          }
-      
-        break;
-      }
-
         case JUMP:
         {
           //First check that JUMP's operand exists
           if ((vm->ip+1)>=byteCodeSize)
           {
-          vm->error=INSTRUCTION_OUT_OF_BOUNDS;
-          vm->executing=0;
+            vm->error=INSTRUCTION_OUT_OF_BOUNDS;
+            vm->executing=0;
           }
           else
           {
@@ -190,6 +185,183 @@ void runVM(struct VM *vm,int program[],int byteCodeSize){
           break;
         }
 
+        case JZ:
+        {
+          int value;
+          if (vm->ip+1>=byteCodeSize)
+          {
+            vm->error=INSTRUCTION_OUT_OF_BOUNDS;
+            vm->executing=0;
+          }
+          else{
+            int target=program[(vm->ip)+1];
+            if (target<byteCodeSize && target>=0)
+            {
+              value=pop(vm);
+              if (vm->error!=NO_ERROR)
+              {
+                break;
+              }
+            }
+            else{
+              vm->error=INSTRUCTION_OUT_OF_BOUNDS;
+              vm->executing=0;
+            }
+            if (value==0)
+            {
+              vm->ip=target;
+            }
+            else{
+              vm->ip+=2;
+            }
+          }
+          
+          break;
+        }
+
+        case EQUAL:
+        {
+          if (vm->sp<2)
+          {
+            vm->error=STACK_UNDERFLOW;
+            vm->executing=0;
+            break;
+          }
+          
+          int right=pop(vm);
+          int left=pop(vm);
+
+          if (left==right)
+          {
+            push(vm,1);
+          }
+          else
+          {
+            push(vm,0);
+          }
+          vm->ip++;
+          break;
+        }
+
+        case LESS_THAN:
+        {
+          if (vm->sp<2)
+          {
+            vm->error=STACK_UNDERFLOW;
+            vm->executing=0;
+            break;
+          }
+
+          int right=pop(vm);
+          int left=pop(vm);
+
+          if (left<right)
+          {
+            push(vm,1);
+          }
+          else{
+            push(vm,0);
+          }
+          vm->ip++;
+
+          break;
+        }
+
+        case GREATER_THAN:
+        {
+          if (vm->sp<2)
+          {
+            vm->error=STACK_UNDERFLOW;
+            vm->executing=0;
+            break;
+          }
+
+          int right=pop(vm);
+          int left=pop(vm);
+
+          if (left>right)
+          {
+            push(vm,1);
+          }
+          else{
+            push(vm,0);
+          }
+          vm->ip++;
+
+          break;
+        }
+
+        case DIV:
+        {
+          if (vm->sp<2)
+          {
+            vm->error=STACK_UNDERFLOW;
+            vm->executing=0;
+            break;
+          }
+          int right=pop(vm);
+          int left=pop(vm);
+
+          if (right==0)
+          {
+            vm->error=DIVISION_BY_ZERO;
+            vm->executing=0;
+            break;
+          }
+          else{
+            push(vm,left/right);
+          }
+          
+          vm->ip++;
+          break;
+        }
+
+        case STORE: 
+        {
+          if (vm->ip+1>=byteCodeSize)
+          {
+            vm->error=INSTRUCTION_OUT_OF_BOUNDS;
+            vm->executing=0;
+            break;
+          }
+          else{
+            int address=program[vm->ip+1];
+            if (address>=0 && address<MEMORY_CAPACITY)
+            {
+              int value=pop(vm);
+              if (vm->error==NO_ERROR)
+              {
+                vm->memory[address]=value;
+              }
+              else{
+                break;
+              } 
+            }
+            else{
+              vm->error=MEMORY_OUT_OF_BOUNDS;
+              vm->executing=0;
+              break;
+            }
+          }
+          vm->ip=+2;
+          break;
+        }
+
+        case PRINT:
+        {
+          int value=peek(vm);
+          if (vm->error!=NO_ERROR)
+          {
+            break;
+          }
+          else{
+          printf("Value is: %d\n",value);
+          vm->ip++;
+          }
+      
+        break;
+      }
+
         case HALT:
         {
           vm->executing=0;
@@ -200,18 +372,17 @@ void runVM(struct VM *vm,int program[],int byteCodeSize){
         vm->error = INVALID_OPCODE;
         vm->executing = 0;
         break;
-        }
+      }
     }
-
   }
-}
+ }
 }
 
 void errorReporting(int vm_error){
   switch (vm_error)
   {
   case STACK_UNDERFLOW:{
-    printf("\n NovaVM Runtime Error: Stack underflow \n Not enough values on the stack to execute this instruction.\n");
+    printf("\n NovaVM Runtime Error: Stack underflow \nNot enough values on the stack to execute this instruction.\n");
     break;
   }
   case STACK_OVERFLOW:{
@@ -223,18 +394,20 @@ void errorReporting(int vm_error){
     break;
   }
   case INSTRUCTION_OUT_OF_BOUNDS:{
-    printf("\nNovaVM Runtime Error: Instruction out of bounds\n NO certain value for the given instructon.\n");
+    printf("\nNovaVM Runtime Error: Instruction out of bounds\nNO certain value for the given instructon.\n");
     break;
+  }
+  case DIVISION_BY_ZERO:{
+    printf("\nNovaVM Runtime Error: Division by zero\nCannot divide by zero.\n");
   }
   default:
     break;
   }
 }
 
-
 int main(){
    
-  int program[]={PUSH, 10, JUMP, 6, PUSH, 999, PRINT, HALT};
+  int program[]={PUSH, 20, PUSH, 5, DIV, PRINT, HALT};
   
   struct VM vm;
 
