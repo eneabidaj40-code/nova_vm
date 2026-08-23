@@ -1,5 +1,6 @@
 #include<stdio.h>
 #define MEMORY_CAPACITY 1024
+#define CALL_STACK 512
 enum Error{
   NO_ERROR,
   STACK_UNDERFLOW,
@@ -7,8 +8,11 @@ enum Error{
   INVALID_OPCODE,
   INSTRUCTION_OUT_OF_BOUNDS,
   DIVISION_BY_ZERO,
-  MEMORY_OUT_OF_BOUNDS
+  MEMORY_OUT_OF_BOUNDS,
+  CALL_STACK_OVERFLOW,
+  CALL_STACK_UNDERFLOW
 };
+
 struct VM
 {
   //ip stands for instruction pointer
@@ -17,6 +21,8 @@ struct VM
   int stack[100];
   int executing;
   int memory[MEMORY_CAPACITY];
+  int callStack[CALL_STACK];
+  int call_sp;
   enum Error error;
 };
 
@@ -33,6 +39,9 @@ enum Opcode{
     GREATER_THAN,
     DIV,//this is added to handle division by zero
     STORE,
+    LOAD,
+    CALL,
+    RET,
     HALT
 };
 
@@ -41,6 +50,8 @@ void initializeVM(struct VM *virtual_machine){
   virtual_machine->sp=0;
   //creating an running VM variable 
   virtual_machine->executing=1;
+  virtual_machine->memory[MEMORY_CAPACITY]=0;
+  virtual_machine->call_sp=0;
   //assigning the virtual machine to the error state which for now is no error accured
   virtual_machine->error=NO_ERROR;
 }
@@ -343,7 +354,84 @@ void runVM(struct VM *vm,int program[],int byteCodeSize){
               break;
             }
           }
-          vm->ip=+2;
+          vm->ip+=2;
+          break;
+        }
+
+        case LOAD:
+        {
+          if (vm->ip+1>=byteCodeSize)
+          {
+            vm->error=INSTRUCTION_OUT_OF_BOUNDS;
+            vm->executing=0;
+            break;
+          }
+          else{
+            int address=program[vm->ip+1];
+            if (address>=0 && address<MEMORY_CAPACITY)
+            {
+              int value=vm->memory[address];
+              push(vm,value);
+              if (vm->error!=NO_ERROR)
+              {
+                break;
+              }
+            }
+            else{
+              vm->error=MEMORY_OUT_OF_BOUNDS;
+              vm->executing=0;
+              break;
+            }
+          }
+          vm->ip+=2;
+          break;
+        }
+
+        case CALL:
+        {
+          if (vm->ip+1>=byteCodeSize)
+          {
+            vm->error=INSTRUCTION_OUT_OF_BOUNDS;
+            vm->executing=0;
+            break;
+          }
+          else
+          {
+            int target=program[vm->ip+1];
+            if (target<byteCodeSize && target>=0)
+            {
+              if (vm->call_sp<CALL_STACK)
+              {
+                vm->callStack[vm->call_sp]=vm->ip+2;
+                vm->call_sp++;
+                vm->ip=target;
+              }
+              else 
+              {
+                vm->error=CALL_STACK_OVERFLOW;
+                vm->executing=0;
+                break;
+              }
+            }
+            else{
+              vm->error=INSTRUCTION_OUT_OF_BOUNDS;
+              vm->executing=0;
+            }
+          }
+          break;
+        }
+
+        case RET:
+        {
+          if (vm->call_sp<byteCodeSize && vm->call_sp>0)
+          {
+            vm->call_sp--;
+            vm->ip=vm->callStack[vm->call_sp];
+          }
+          else{
+            vm->error=CALL_STACK_UNDERFLOW;
+            vm->executing=0;
+          }
           break;
         }
 
@@ -377,7 +465,6 @@ void runVM(struct VM *vm,int program[],int byteCodeSize){
   }
  }
 }
-
 void errorReporting(int vm_error){
   switch (vm_error)
   {
@@ -400,14 +487,24 @@ void errorReporting(int vm_error){
   case DIVISION_BY_ZERO:{
     printf("\nNovaVM Runtime Error: Division by zero\nCannot divide by zero.\n");
   }
+  case MEMORY_OUT_OF_BOUNDS:{
+    printf("\nNovaVM Runtime Error: Memory out of bounds\nCannot go beyond memory space.\n");
+  }
+  case CALL_STACK_OVERFLOW:{
+    printf("\nNovaVM Runtime Error: Call stack overflow\nThe stack has reached its maximum capacity.\n");
+  }
+  case CALL_STACK_UNDERFLOW:{
+    printf("\n NovaVM Runtime Error: Stack underflow \nNot enough values on the stack to execute this instruction.\n");
+    break;
+  }
   default:
     break;
   }
 }
 
 int main(){
-   
-  int program[]={PUSH, 20, PUSH, 5, DIV, PRINT, HALT};
+  int program[] = {RET,HALT};
+  //int program[]={PUSH,7,STORE,0,LOAD,0,PUSH,10,LESS_THAN,JZ,16,PUSH,50,PRINT,JUMP,19,PUSH,100,PRINT,HALT};
   
   struct VM vm;
 
