@@ -8,11 +8,11 @@ enum Opcode
     SUB,
     PRINT,
     JUMP,
-    JZ,//jump to zero 
+    JZ, // jump to zero
     EQUAL,
     LESS_THAN,
     GREATER_THAN,
-    DIV,//this is added to handle division by zero
+    DIV, // this is added to handle division by zero
     STORE,
     LOAD,
     CALL,
@@ -21,7 +21,7 @@ enum Opcode
     LOAD_LOCAL,
     HALT
 };
-extern char* OPCODE_NAMES[];
-char* opcode_to_string(int opcode);
+extern char *OPCODE_NAMES[];
+char *opcode_to_string(int opcode);
 
 #endif

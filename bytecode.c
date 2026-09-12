@@ -1,7 +1,7 @@
 #include "bytecode.h"
 #include <stddef.h>
 
-char *OPCODE_NAMES[]={
+char *OPCODE_NAMES[] = {
     "PUSH",
     "ADD",
     "MUL",
@@ -20,12 +20,12 @@ char *OPCODE_NAMES[]={
     "STORE_LOCAL",
     "LOAD_LOCAL",
     "HALT",
-    NULL
-};
+    NULL};
 ;
-char* opcode_to_string(int opcode) {
-    int total_opcodes=sizeof(OPCODE_NAMES)/sizeof(OPCODE_NAMES[0]);
-    if (opcode>=0 && opcode<total_opcodes) 
+char *opcode_to_string(int opcode)
+{
+    int total_opcodes = sizeof(OPCODE_NAMES) / sizeof(OPCODE_NAMES[0]);
+    if (opcode >= 0 && opcode < total_opcodes)
     {
         return OPCODE_NAMES[opcode];
     }
