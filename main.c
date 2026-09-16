@@ -5,6 +5,7 @@
 #define MAX_BYTECODE 100
 #include "disassembler.h"
 #include "assembler.h"
+#include "lexer.h"
 
 enum Error
 {
@@ -684,10 +685,14 @@ void errorReporting(int vm_error)
 int main()
 {
   char source[MAX_BYTECODE][MAX_LINE_LENGTH];
-
   int program[MAX_BYTECODE];
+  char novaSource[MAX_SOURCE_LENGTH];
+
   struct VM vm;
   struct FileStatus status;
+  struct Lexer lexer;
+  struct Token token;
+
   initializeVM(&vm);
 
   int byteCodeSize = 0;
@@ -699,6 +704,25 @@ int main()
   {
     file_error_reporting(&status);
     return 1;
+  }
+
+  FILE *fp = NULL;
+  fp = fopen("file.nova", "r");
+  if (fp = NULL)
+  {
+    printf("Cannot open the file ");
+    return 1;
+  }
+
+  readFile(fp, novaSource);
+
+  initializeLexer(&lexer, novaSource);
+  token = scanToken(&lexer);
+
+  while (token.type != TOKEN_EOF)
+  {
+    printf("%s\n", token.lexeme);
+    token = scanToken(&lexer);
   }
 
   if (assemble(source, lines, program, MAX_BYTECODE, &byteCodeSize) == 1)

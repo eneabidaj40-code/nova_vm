@@ -1,6 +1,6 @@
 #include <stdio.h>
+#include <string.h>
 #include "lexer.h"
-#define MAX_SOURCE_LENGTH 4096
 void initializeLexer(struct Lexer *lexer, char *sourceBuffer)
 {
     lexer->source = sourceBuffer;
@@ -13,7 +13,7 @@ char advance(struct Lexer *lexer) // inspect and consume
     return lexer->source[lexer->current++];
 }
 
-char peek(struct Lexer *lexer) // inspect only
+char lexerPeek(struct Lexer *lexer) // inspect only
 {
     return lexer->source[lexer->current];
 }
@@ -58,47 +58,103 @@ int readFile(FILE *file_nova, char *bufferMemory)
     fclose(file_nova);
     return 1;
 }
-int scanToken(struct Lexer *lexer)
+struct Token scanToken(struct Lexer *lexer)
 {
     struct Token token;
-    char inspect = peek(lexer->source[lexer->current]);
+    char lex[100];
+    int i = 0;
 
-    if (inspect > 'a' && inspect < 'z')
+    char inspect = lexerPeek(lexer);
+
+    while (inspect == ' ' || inspect == '\t' || inspect == '\n')
     {
-        char lex[100];
-        int i = 0;
-        char consume_char = advance(lexer->source[lexer->current]);
-
-        while (consume_char > 'a' && consume_char < 'z' || consume_char == '_')
+        if (inspect == '\n')
         {
-            lex[i] = consume_char;
-            consume_char = advance(lexer->source[lexer->current]);
+            lexer->line++;
+        }
+
+        advance(lexer);
+        inspect = lexerPeek(lexer);
+    }
+
+    if (isAtEnd(lexer) == 1)
+    {
+        token.type = TOKEN_EOF;
+        token.lexeme[0] = '\0';
+        return token;
+    }
+
+    lexer->start = lexer->current;
+
+    if ((inspect >= 'a' && inspect <= 'z') || inspect == '_' || (inspect >= 'A' && inspect <= 'Z'))
+    {
+        while (inspect >= 'a' && inspect <= 'z' || inspect == '_' || (inspect >= 'A' && inspect <= 'Z') || (inspect >= '0' && inspect <= '9'))
+        {
+            lex[i] = advance(lexer);
+            inspect = lexerPeek(lexer);
             i++;
         }
+        lex[i] = '\0';
         if (strcmp(lex, "var") == 0)
         {
             token.type = TOKEN_VAR;
+            strcpy(token.lexeme, lex);
         }
         else
         {
             token.type = TOKEN_IDENTIFIER;
+            strcpy(token.lexeme, lex);
         }
+        return token;
     }
 
-    if (inspect == '\n')
+    if (inspect >= '0' && inspect <= '9')
     {
-        lexer->line++;
+        while (inspect >= '0' && inspect <= '9')
+        {
+            lex[i] = advance(lexer);
+            inspect = lexerPeek(lexer);
+            i++;
+        }
+        lex[i] = '\0';
+        token.type = TOKEN_NUMBER;
+        strcpy(token.lexeme, lex);
+
+        return token;
     }
+
     if (inspect == '=')
     {
+        advance(lexer);
         token.type = TOKEN_EQUAL;
+        strcpy(token.lexeme, "=");
+        return token;
     }
     if (inspect == '+')
     {
+        advance(lexer);
         token.type = TOKEN_PLUS;
+        strcpy(token.lexeme, "+");
+        return token;
     }
     if (inspect == ';')
     {
+        advance(lexer);
         token.type = TOKEN_SEMICOLON;
+        strcpy(token.lexeme, ";");
+        return token;
+    }
+    if (isAtEnd(lexer) == 1)
+    {
+        token.type = TOKEN_EOF;
+        strcpy(token.lexeme, '\0');
+    }
+    if (inspect)
+    {
+        advance(lexer);
+        token.type = TOKEN_ERROR;
+        token.lexeme[0] = inspect;
+        token.lexeme[1] = '\0';
+        return token;
     }
 }
