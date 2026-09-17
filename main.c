@@ -6,6 +6,7 @@
 #include "disassembler.h"
 #include "assembler.h"
 #include "lexer.h"
+#include "parser.h"
 
 enum Error
 {
@@ -692,6 +693,7 @@ int main()
   struct FileStatus status;
   struct Lexer lexer;
   struct Token token;
+  struct Parser parser;
 
   initializeVM(&vm);
 
@@ -724,6 +726,14 @@ int main()
     printf("%s line : %d\n", token.lexeme, token.line);
     token = scanToken(&lexer);
   }
+  printf("\nParser\n");
+
+  initializeLexer(&lexer, novaSource);
+  initializeParser(&parser, &lexer);
+
+  parseDeclaration(&parser);
+
+  printf("Parser error: %d\n", parser.error);
 
   if (assemble(source, lines, program, MAX_BYTECODE, &byteCodeSize) == 1)
   {
