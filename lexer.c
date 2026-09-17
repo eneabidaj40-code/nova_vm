@@ -81,6 +81,7 @@ struct Token scanToken(struct Lexer *lexer)
     {
         token.type = TOKEN_EOF;
         token.lexeme[0] = '\0';
+        token.line = lexer->line;
         return token;
     }
 
@@ -105,6 +106,8 @@ struct Token scanToken(struct Lexer *lexer)
             token.type = TOKEN_IDENTIFIER;
             strcpy(token.lexeme, lex);
         }
+
+        token.line = lexer->line;
         return token;
     }
 
@@ -120,6 +123,7 @@ struct Token scanToken(struct Lexer *lexer)
         token.type = TOKEN_NUMBER;
         strcpy(token.lexeme, lex);
 
+        token.line = lexer->line;
         return token;
     }
 
@@ -128,6 +132,7 @@ struct Token scanToken(struct Lexer *lexer)
         advance(lexer);
         token.type = TOKEN_EQUAL;
         strcpy(token.lexeme, "=");
+        token.line = lexer->line;
         return token;
     }
     if (inspect == '+')
@@ -135,6 +140,7 @@ struct Token scanToken(struct Lexer *lexer)
         advance(lexer);
         token.type = TOKEN_PLUS;
         strcpy(token.lexeme, "+");
+        token.line = lexer->line;
         return token;
     }
     if (inspect == ';')
@@ -142,6 +148,7 @@ struct Token scanToken(struct Lexer *lexer)
         advance(lexer);
         token.type = TOKEN_SEMICOLON;
         strcpy(token.lexeme, ";");
+        token.line = lexer->line;
         return token;
     }
     if (isAtEnd(lexer) == 1)
@@ -155,6 +162,7 @@ struct Token scanToken(struct Lexer *lexer)
         token.type = TOKEN_ERROR;
         token.lexeme[0] = inspect;
         token.lexeme[1] = '\0';
+        token.line = lexer->line;
         return token;
     }
 }

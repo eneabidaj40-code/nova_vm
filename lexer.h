@@ -19,6 +19,7 @@ struct Token
 {
     enum TokenType type;
     char lexeme[MAX_LEXEME_LENGTH];
+    int line;
 };
 struct Lexer
 {

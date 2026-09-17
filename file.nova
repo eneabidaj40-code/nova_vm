@@ -1,1 +1,2 @@
-var result=10+20;
+var x=10;
+var result=20+5;

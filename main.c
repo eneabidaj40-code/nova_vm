@@ -721,7 +721,7 @@ int main()
 
   while (token.type != TOKEN_EOF)
   {
-    printf("%s\n", token.lexeme);
+    printf("%s line : %d\n", token.lexeme, token.line);
     token = scanToken(&lexer);
   }
 
