@@ -103,3 +103,23 @@ void parseDeclaration(struct Parser *parser)
         return;
     }
 }
+int parseProgram(struct Parser *parser)
+{
+    while (parser->current.type == TOKEN_VAR)
+    {
+        parseDeclaration(parser);
+        if (parser->error != PARSER_NO_ERROR)
+        {
+            return 0;
+        }
+    }
+    if (parser->current.type == TOKEN_EOF)
+    {
+        return 1;
+    }
+    else
+    {
+        parser->error = PARSER_UNEXPECTED_TOKEN;
+        return 0;
+    }
+}

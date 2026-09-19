@@ -731,7 +731,7 @@ int main()
   initializeLexer(&lexer, novaSource);
   initializeParser(&parser, &lexer);
 
-  parseDeclaration(&parser);
+  parseProgram(&parser);
 
   printf("Parser error: %d\n", parser.error);
 

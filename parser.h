@@ -30,4 +30,5 @@ int consumeToken(struct Parser *parser, enum TokenType type, enum ParserError er
 int parsePrimary(struct Parser *parser);
 int parseExpression(struct Parser *parser);
 void parseDeclaration(struct Parser *parser);
+int parseProgram(struct Parser *parser);
 #endif
