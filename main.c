@@ -694,6 +694,7 @@ int main()
   struct Lexer lexer;
   struct Token token;
   struct Parser parser;
+  struct Program *astProgram;
 
   initializeVM(&vm);
 
@@ -710,7 +711,7 @@ int main()
 
   FILE *fp = NULL;
   fp = fopen("file.nova", "r");
-  if (fp = NULL)
+  if (fp == NULL)
   {
     printf("Cannot open the file ");
     return 1;
@@ -731,9 +732,39 @@ int main()
   initializeLexer(&lexer, novaSource);
   initializeParser(&parser, &lexer);
 
-  parseProgram(&parser);
+  astProgram = parseProgram(&parser);
+  if (astProgram == NULL)
+  {
+    printf("Parser error: %d\n", parser.error);
+  }
+  else
+  {
+    for (int i = 0; i < astProgram->declarationCount; i++)
+    {
+      printf("Name: %s\n", astProgram->declarations[i]->name);
+      printf("Type: %d\n", astProgram->declarations[i]->value->type);
 
-  printf("Parser error: %d\n", parser.error);
+      if (astProgram->declarations[i]->value->type == EXPR_NUMBER)
+      {
+        printf("Number: %d\n", astProgram->declarations[i]->value->data.number);
+      }
+
+      printf("\n");
+    }
+    printf("\nHere\n");
+    struct Expression *expr = astProgram->declarations[2]->value;
+
+    if (expr->type == EXPR_BINARY)
+    {
+      printf("Left type: %d\n", expr->data.binary.left->type);
+      printf("Left identifier: %s\n", expr->data.binary.left->data.identifier);
+
+      printf("Operator: %d\n", expr->data.binary.operator);
+
+      printf("Right type: %d\n", expr->data.binary.right->type);
+      printf("Right identifier: %s\n", expr->data.binary.right->data.identifier);
+    }
+  }
 
   if (assemble(source, lines, program, MAX_BYTECODE, &byteCodeSize) == 1)
   {

@@ -13,6 +13,12 @@ enum ParserError
     PARSER_EXPECTED_SEMICOLON,
     PARSER_UNEXPECTED_TOKEN
 };
+enum ExpressionType
+{
+    EXPR_NUMBER,
+    EXPR_IDENTIFIER,
+    EXPR_BINARY
+};
 struct Parser
 {
     struct Lexer *lexer;
@@ -20,6 +26,34 @@ struct Parser
     struct Token previous;
     enum ParserError error;
 };
+struct Expression;
+struct BinaryExpression
+{
+    struct Expression *left;
+    enum TokenType operator;
+    struct Expression *right;
+};
+struct Expression
+{
+    enum ExpressionType type;
+    union Data
+    {
+        int number;
+        char identifier[100];
+        struct BinaryExpression binary;
+    } data;
+};
+struct VariableDeclaration
+{
+    char name[100];
+    struct Expression *value;
+};
+struct Program
+{
+    struct VariableDeclaration *declarations[100];
+    int declarationCount;
+};
+
 void initializeParser(struct Parser *parser, struct Lexer *lexer);
 void parserAdvance(struct Parser *parser);
 
@@ -27,8 +61,8 @@ int checkToken(struct Parser *parser, enum TokenType type);
 int matchToken(struct Parser *parser, enum TokenType type);
 int consumeToken(struct Parser *parser, enum TokenType type, enum ParserError error);
 
-int parsePrimary(struct Parser *parser);
-int parseExpression(struct Parser *parser);
-void parseDeclaration(struct Parser *parser);
-int parseProgram(struct Parser *parser);
+struct Expression *parsePrimary(struct Parser *parser);
+struct Expression *parseExpression(struct Parser *parser);
+struct VariableDeclaration *parseDeclaration(struct Parser *parser);
+struct Program *parseProgram(struct Parser *parser);
 #endif
