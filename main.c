@@ -2,11 +2,11 @@
 #define MEMORY_CAPACITY 1024
 #define CALL_STACK 512
 #define LOCAL_MEMORY_CAPACITY 4096
-#define MAX_BYTECODE 100
 #include "disassembler.h"
 #include "assembler.h"
 #include "lexer.h"
 #include "parser.h"
+#include "compiler.h"
 
 enum Error
 {
