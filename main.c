@@ -685,98 +685,54 @@ void errorReporting(int vm_error)
 
 int main()
 {
-  char source[MAX_BYTECODE][MAX_LINE_LENGTH];
-  int program[MAX_BYTECODE];
   char novaSource[MAX_SOURCE_LENGTH];
 
   struct VM vm;
-  struct FileStatus status;
   struct Lexer lexer;
-  struct Token token;
   struct Parser parser;
   struct Program *astProgram;
+  struct Compiler compiler;
 
   initializeVM(&vm);
-
-  int byteCodeSize = 0;
-  /*now we have to build the stack pointer to know where the top of the stack is
-  and the integer array capable to play the role as an stack */
-  int lines = load_source_file("file.novaasm", source, 100, &status);
-
-  if (status.error != FILE_NO_ERROR)
-  {
-    file_error_reporting(&status);
-    return 1;
-  }
+  initializeCompiler(&compiler);
 
   FILE *fp = NULL;
   fp = fopen("file.nova", "r");
+
   if (fp == NULL)
   {
-    printf("Cannot open the file ");
+    printf("Cannot open file.nova\n");
     return 1;
   }
 
-  readFile(fp, novaSource);
-
-  initializeLexer(&lexer, novaSource);
-  token = scanToken(&lexer);
-
-  while (token.type != TOKEN_EOF)
+  if (readFile(fp, novaSource) != 1)
   {
-    printf("%s line : %d\n", token.lexeme, token.line);
-    token = scanToken(&lexer);
+    printf("Failed reading file.nova\n");
+    return 1;
   }
-  printf("\nParser\n");
 
   initializeLexer(&lexer, novaSource);
   initializeParser(&parser, &lexer);
 
   astProgram = parseProgram(&parser);
+
   if (astProgram == NULL)
   {
     printf("Parser error: %d\n", parser.error);
-  }
-  else
-  {
-    for (int i = 0; i < astProgram->declarationCount; i++)
-    {
-      printf("Name: %s\n", astProgram->declarations[i]->name);
-      printf("Type: %d\n", astProgram->declarations[i]->value->type);
-
-      if (astProgram->declarations[i]->value->type == EXPR_NUMBER)
-      {
-        printf("Number: %d\n", astProgram->declarations[i]->value->data.number);
-      }
-
-      printf("\n");
-    }
-    printf("\nHere\n");
-    struct Expression *expr = astProgram->declarations[2]->value;
-
-    if (expr->type == EXPR_BINARY)
-    {
-      printf("Left type: %d\n", expr->data.binary.left->type);
-      printf("Left identifier: %s\n", expr->data.binary.left->data.identifier);
-
-      printf("Operator: %d\n", expr->data.binary.operator);
-
-      printf("Right type: %d\n", expr->data.binary.right->type);
-      printf("Right identifier: %s\n", expr->data.binary.right->data.identifier);
-    }
+    return 1;
   }
 
-  if (assemble(source, lines, program, MAX_BYTECODE, &byteCodeSize) == 1)
-  {
-    printf("\n--- DISASSEMBLY ---\n");
-    disassemble(program, byteCodeSize);
+  compileProgram(&compiler, astProgram);
 
-    printf("\n--- VM ---\n");
-    runVM(&vm, program, byteCodeSize);
+  printf("\n--- DISASSEMBLY ---\n");
+  disassemble(compiler.bytecode, compiler.byteCodeSize);
 
-    // reporting the error that can happen during the execution of the instructions
-    errorReporting(vm.error);
-  }
+  printf("\n--- VM ---\n");
+  runVM(&vm, compiler.bytecode, compiler.byteCodeSize);
+  printf("%d \n", vm.memory[0]);
+  printf("%d \n", vm.memory[1]);
+  printf("%d \n", vm.memory[2]);
+  errorReporting(vm.error);
 
   return 0;
 }

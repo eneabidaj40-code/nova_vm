@@ -57,9 +57,31 @@ void compileExpression(struct Compiler *compiler, struct Expression *expression)
         break;
 
     case EXPR_BINARY:
-    
+        compileExpression(compiler, expression->data.binary.left);
+        compileExpression(compiler, expression->data.binary.right);
+        if (expression->data.binary.operator == TOKEN_PLUS)
+        {
+            emitByteCode(compiler, ADD);
+        }
         break;
+
     default:
         break;
     }
+}
+void compileDelaration(struct VariableDeclaration *declaration, struct Compiler *compiler)
+{
+    compileExpression(compiler, declaration->value);
+    addSymbol(&compiler->table, declaration->name);
+    int address = getSymbolAddress(&compiler->table, declaration->name);
+    emitByteCode(compiler, STORE);
+    emitByteCode(compiler, address);
+}
+void compileProgram(struct Compiler *compiler,struct Program *program)
+{
+    for (int i = 0; i < program->declarationCount; i++)
+    {
+        compileDelaration(program->declarations[i],compiler);
+    }
+    emitByteCode(compiler,HALT);
 }

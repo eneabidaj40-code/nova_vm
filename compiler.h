@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "bytecode.h"
+#include "parser.h"
 #ifndef COMPILER_H
 #define COMPILER_H
 #define MAX_SYMBOL_LENGTH 100
@@ -25,5 +26,8 @@ void initialize_symbol(struct SymbolTable *symbol);
 void addSymbol(struct SymbolTable *table, char *name);
 int getSymbolAddress(struct SymbolTable *table, char *name);
 void initializeCompiler(struct Compiler *compiler);
-void emitByteCode(struct Compiler *compiler,int value);
+void emitByteCode(struct Compiler *compiler, int value);
+void compileExpression(struct Compiler *compiler, struct Expression *expression);
+void compileDelaration(struct VariableDeclaration *declaration, struct Compiler *compiler);
+void compileProgram(struct Compiler *compiler, struct Program *program);
 #endif

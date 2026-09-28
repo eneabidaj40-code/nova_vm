@@ -29,13 +29,6 @@ int isAtEnd(struct Lexer *lexer)
 
 int readFile(FILE *file_nova, char *bufferMemory)
 {
-    file_nova = fopen("file.nova", "r");
-    if (file_nova == NULL)
-    {
-        printf("Cannot open the file\n");
-        return 0;
-    }
-
     char line[256];
 
     int sourceLength = 0;
