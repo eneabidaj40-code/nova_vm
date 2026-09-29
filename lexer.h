@@ -10,9 +10,12 @@ enum TokenType
     TOKEN_IDENTIFIER,
     TOKEN_EQUAL,
     TOKEN_NUMBER,
-    TOKEN_PLUS,
     TOKEN_SEMICOLON,
     TOKEN_EOF,
+    TOKEN_PLUS,
+    TOKEN_MINUS,
+    TOKEN_STAR,
+    TOKEN_SLASH,
     TOKEN_ERROR
 };
 struct Token

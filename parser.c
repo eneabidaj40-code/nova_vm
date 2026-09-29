@@ -87,18 +87,30 @@ struct Expression *parsePrimary(struct Parser *parser)
     }
     return expression;
 }
-struct Expression *parseExpression(struct Parser *parser)
+struct Expression *parseTerm(struct Parser *parser)
 {
     struct Expression *left;
     struct Expression *right;
     struct Expression *binary;
+    enum TokenType operator;
+
     left = parsePrimary(parser);
     if (left == NULL)
     {
         return NULL;
     }
-    while (matchToken(parser, TOKEN_PLUS) == 1)
+    while (parser->current.type == TOKEN_SLASH || parser->current.type == TOKEN_STAR)
     {
+        operator = parser->current.type;
+        if (operator == TOKEN_SLASH)
+        {
+            matchToken(parser, TOKEN_SLASH);
+        }
+        if (operator == TOKEN_STAR)
+        {
+            matchToken(parser, TOKEN_STAR);
+        }
+
         right = parsePrimary(parser);
         if (right == NULL)
         {
@@ -113,7 +125,52 @@ struct Expression *parseExpression(struct Parser *parser)
 
         binary->type = EXPR_BINARY;
         binary->data.binary.left = left;
-        binary->data.binary.operator = TOKEN_PLUS;
+        binary->data.binary.operator = operator;
+        binary->data.binary.right = right;
+
+        left = binary;
+    }
+    return left;
+}
+struct Expression *parseExpression(struct Parser *parser)
+{
+    struct Expression *left;
+    struct Expression *right;
+    struct Expression *binary;
+    enum TokenType operator;
+
+    left = parsePrimary(parser);
+    if (left == NULL)
+    {
+        return NULL;
+    }
+    while (parser->current.type == TOKEN_PLUS || parser->current.type == TOKEN_MINUS)
+    {
+        operator = parser->current.type;
+        if (operator == TOKEN_PLUS)
+        {
+            matchToken(parser, TOKEN_PLUS);
+        }
+        if (operator == TOKEN_MINUS)
+        {
+            matchToken(parser, TOKEN_MINUS);
+        }
+
+        right = parseTerm(parser);
+        if (right == NULL)
+        {
+            return NULL;
+        }
+        binary = (struct Expression *)malloc(sizeof(struct Expression));
+        if (binary == NULL)
+        {
+            printf("Failed accessing the memory\n");
+            return NULL;
+        }
+
+        binary->type = EXPR_BINARY;
+        binary->data.binary.left = left;
+        binary->data.binary.operator = operator;
         binary->data.binary.right = right;
 
         left = binary;

@@ -63,6 +63,18 @@ void compileExpression(struct Compiler *compiler, struct Expression *expression)
         {
             emitByteCode(compiler, ADD);
         }
+        if (expression->data.binary.operator == TOKEN_MINUS)
+        {
+            emitByteCode(compiler, SUB);
+        }
+        if (expression->data.binary.operator == TOKEN_STAR)
+        {
+            emitByteCode(compiler, MUL);
+        }
+        if (expression->data.binary.operator == TOKEN_SLASH)
+        {
+            emitByteCode(compiler, DIV);
+        }
         break;
 
     default:
@@ -77,11 +89,11 @@ void compileDelaration(struct VariableDeclaration *declaration, struct Compiler 
     emitByteCode(compiler, STORE);
     emitByteCode(compiler, address);
 }
-void compileProgram(struct Compiler *compiler,struct Program *program)
+void compileProgram(struct Compiler *compiler, struct Program *program)
 {
     for (int i = 0; i < program->declarationCount; i++)
     {
-        compileDelaration(program->declarations[i],compiler);
+        compileDelaration(program->declarations[i], compiler);
     }
-    emitByteCode(compiler,HALT);
+    emitByteCode(compiler, HALT);
 }

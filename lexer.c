@@ -136,6 +136,30 @@ struct Token scanToken(struct Lexer *lexer)
         token.line = lexer->line;
         return token;
     }
+    if (inspect == '-')
+    {
+        advance(lexer);
+        token.type = TOKEN_MINUS;
+        strcpy(token.lexeme, "-");
+        token.line = lexer->line;
+        return token;
+    }
+    if (inspect == '*')
+    {
+        advance(lexer);
+        token.type = TOKEN_STAR;
+        strcpy(token.lexeme, "*");
+        token.line = lexer->line;
+        return token;
+    }
+    if (inspect == '/')
+    {
+        advance(lexer);
+        token.type = TOKEN_SLASH;
+        strcpy(token.lexeme, "/");
+        token.line = lexer->line;
+        return token;
+    }
     if (inspect == ';')
     {
         advance(lexer);
