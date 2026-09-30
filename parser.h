@@ -18,7 +18,8 @@ enum ExpressionType
 {
     EXPR_NUMBER,
     EXPR_IDENTIFIER,
-    EXPR_BINARY
+    EXPR_BINARY,
+    EXP_PRINT
 };
 enum StatementType
 {
@@ -83,5 +84,5 @@ struct Expression *parsePrimary(struct Parser *parser);
 struct Expression *parseExpression(struct Parser *parser);
 struct VariableDeclaration *parseDeclaration(struct Parser *parser);
 struct Program *parseProgram(struct Parser *parser);
-struct PrintStatement *parserPrintStatement(struct Parser *parser);
+struct PrintStatement *parsePrintStatement(struct Parser *parser);
 #endif

@@ -76,7 +76,6 @@ void compileExpression(struct Compiler *compiler, struct Expression *expression)
             emitByteCode(compiler, DIV);
         }
         break;
-
     default:
         break;
     }
@@ -89,11 +88,23 @@ void compileDelaration(struct VariableDeclaration *declaration, struct Compiler 
     emitByteCode(compiler, STORE);
     emitByteCode(compiler, address);
 }
+void compileprintStatement(struct Compiler *compiler, struct PrintStatement *printStatement)
+{
+    compileExpression(compiler, printStatement->value);
+    emitByteCode(compiler, PRINT);
+}
 void compileProgram(struct Compiler *compiler, struct Program *program)
 {
-    for (int i = 0; i < program->declarationCount; i++)
+    for (int i = 0; i < program->statementCount; i++)
     {
-        compileDelaration(program->declarations[i], compiler);
+        if (program->statements[i]->type == STMT_VAR_DECLARATION)
+        {
+            compileDelaration(program->statements[i]->declaration, compiler);
+        }
+        if (program->statements[i]->type == STMT_PRINT)
+        {
+            compileprintStatement(compiler, program->statements[i]->printSt);
+        }
     }
     emitByteCode(compiler, HALT);
 }

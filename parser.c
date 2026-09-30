@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "lexer.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -221,7 +222,7 @@ struct VariableDeclaration *parseDeclaration(struct Parser *parser)
 
     return var;
 }
-struct PrintStatement *parserPrintStatement(struct Parser *parser)
+struct PrintStatement *parsePrintStatement(struct Parser *parser)
 {
     struct Expression *value = NULL;
 
@@ -240,6 +241,11 @@ struct PrintStatement *parserPrintStatement(struct Parser *parser)
     }
     struct PrintStatement *print;
     print = (struct PrintStatement *)malloc(sizeof(struct PrintStatement));
+    if (print == NULL)
+    {
+        return NULL;
+    }
+
     print->value = value;
     return print;
 }
@@ -262,7 +268,7 @@ struct Statement *parseStatement(struct Parser *parser)
         statement->type = STMT_VAR_DECLARATION;
         statement->printSt = NULL;
     }
-    if (parser->current.type == TOKEN_PRINT)
+    else if (parser->current.type == TOKEN_PRINT)
     {
         statement = (struct Statement *)malloc(sizeof(struct Statement));
         if (statement == NULL)
@@ -293,7 +299,7 @@ struct Program *parseProgram(struct Parser *parser)
     while (parser->current.type == TOKEN_VAR || parser->current.type == TOKEN_PRINT)
     {
         struct Statement *statement;
-        statement = parseDeclaration(parser);
+        statement = parseStatement(parser);
         if (statement == NULL)
         {
             return NULL;
