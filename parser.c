@@ -221,6 +221,64 @@ struct VariableDeclaration *parseDeclaration(struct Parser *parser)
 
     return var;
 }
+struct PrintStatement *parserPrintStatement(struct Parser *parser)
+{
+    struct Expression *value = NULL;
+
+    if (consumeToken(parser, TOKEN_PRINT, PARSER_EXPECTED_PRINT) != 1)
+    {
+        return NULL;
+    }
+    value = parseExpression(parser);
+    if (value == NULL)
+    {
+        return NULL;
+    }
+    if (consumeToken(parser, TOKEN_SEMICOLON, PARSER_EXPECTED_SEMICOLON) != 1)
+    {
+        return NULL;
+    }
+    struct PrintStatement *print;
+    print = (struct PrintStatement *)malloc(sizeof(struct PrintStatement));
+    print->value = value;
+    return print;
+}
+struct Statement *parseStatement(struct Parser *parser)
+{
+    struct Statement *statement = NULL;
+    if (parser->current.type == TOKEN_VAR)
+    {
+        statement = (struct Statement *)malloc(sizeof(struct Statement));
+        if (statement == NULL)
+        {
+            return NULL;
+        }
+        statement->declaration = parseDeclaration(parser);
+        if (statement->declaration == NULL)
+        {
+            return NULL;
+        }
+
+        statement->type = STMT_VAR_DECLARATION;
+        statement->printSt = NULL;
+    }
+    if (parser->current.type == TOKEN_PRINT)
+    {
+        statement = (struct Statement *)malloc(sizeof(struct Statement));
+        if (statement == NULL)
+        {
+            return NULL;
+        }
+        statement->printSt = parsePrintStatement(parser);
+        if (statement->printSt == NULL)
+        {
+            return NULL;
+        }
+        statement->type = STMT_PRINT;
+        statement->declaration = NULL;
+    }
+    return statement;
+}
 struct Program *parseProgram(struct Parser *parser)
 {
     struct Program *astProgram = NULL;
@@ -230,18 +288,18 @@ struct Program *parseProgram(struct Parser *parser)
         printf("Cannot access the memory\n");
         return NULL;
     }
-    astProgram->declarationCount = 0;
+    astProgram->statementCount = 0;
 
-    while (parser->current.type == TOKEN_VAR)
+    while (parser->current.type == TOKEN_VAR || parser->current.type == TOKEN_PRINT)
     {
-        struct VariableDeclaration *declaration;
-        declaration = parseDeclaration(parser);
-        if (declaration == NULL)
+        struct Statement *statement;
+        statement = parseDeclaration(parser);
+        if (statement == NULL)
         {
             return NULL;
         }
-        astProgram->declarations[astProgram->declarationCount] = declaration;
-        astProgram->declarationCount++;
+        astProgram->statements[astProgram->statementCount] = statement;
+        astProgram->statementCount++;
     }
     if (parser->current.type == TOKEN_EOF)
     {

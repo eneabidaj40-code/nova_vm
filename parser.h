@@ -11,6 +11,7 @@ enum ParserError
     PARSER_EXPECTED_EQUAL,
     PARSER_EXPECTED_EXPRESSION,
     PARSER_EXPECTED_SEMICOLON,
+    PARSER_EXPECTED_PRINT,
     PARSER_UNEXPECTED_TOKEN
 };
 enum ExpressionType
@@ -18,6 +19,11 @@ enum ExpressionType
     EXPR_NUMBER,
     EXPR_IDENTIFIER,
     EXPR_BINARY
+};
+enum StatementType
+{
+    STMT_VAR_DECLARATION,
+    STMT_PRINT
 };
 struct Parser
 {
@@ -33,6 +39,11 @@ struct BinaryExpression
     enum TokenType operator;
     struct Expression *right;
 };
+struct PrintStatement
+{
+    struct Expression *value;
+};
+
 struct Expression
 {
     enum ExpressionType type;
@@ -48,10 +59,17 @@ struct VariableDeclaration
     char name[100];
     struct Expression *value;
 };
+struct Statement
+{
+    struct PrintStatement *printSt;
+    struct VariableDeclaration *declaration;
+    enum StatementType type;
+};
+
 struct Program
 {
-    struct VariableDeclaration *declarations[100];
-    int declarationCount;
+    struct Statement *statements[100];
+    int statementCount;
 };
 
 void initializeParser(struct Parser *parser, struct Lexer *lexer);
@@ -65,4 +83,5 @@ struct Expression *parsePrimary(struct Parser *parser);
 struct Expression *parseExpression(struct Parser *parser);
 struct VariableDeclaration *parseDeclaration(struct Parser *parser);
 struct Program *parseProgram(struct Parser *parser);
+struct PrintStatement *parserPrintStatement(struct Parser *parser);
 #endif

@@ -94,6 +94,11 @@ struct Token scanToken(struct Lexer *lexer)
             token.type = TOKEN_VAR;
             strcpy(token.lexeme, lex);
         }
+        if (strcmp(lex, "print") == 0)
+        {
+            token.type=TOKEN_PRINT;
+            strcpy(token.lexeme,lex);
+        }
         else
         {
             token.type = TOKEN_IDENTIFIER;
