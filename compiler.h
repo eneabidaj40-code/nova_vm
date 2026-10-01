@@ -29,5 +29,6 @@ void initializeCompiler(struct Compiler *compiler);
 void emitByteCode(struct Compiler *compiler, int value);
 void compileExpression(struct Compiler *compiler, struct Expression *expression);
 void compileDelaration(struct VariableDeclaration *declaration, struct Compiler *compiler);
+void compileAssignment(struct Compiler *compiler, struct AssignmentStatement *assingment);
 void compileProgram(struct Compiler *compiler, struct Program *program);
 #endif

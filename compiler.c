@@ -93,6 +93,18 @@ void compileprintStatement(struct Compiler *compiler, struct PrintStatement *pri
     compileExpression(compiler, printStatement->value);
     emitByteCode(compiler, PRINT);
 }
+void compileAssignment(struct Compiler *compiler, struct AssignmentStatement *assingment)
+{
+    compileExpression(compiler, assingment->value);
+    int address = getSymbolAddress(&compiler->table, assingment->name);
+    if (address == -1)
+    {
+        return;
+    }
+    emitByteCode(compiler, STORE);
+    emitByteCode(compiler, address);
+}
+
 void compileProgram(struct Compiler *compiler, struct Program *program)
 {
     for (int i = 0; i < program->statementCount; i++)
@@ -104,6 +116,10 @@ void compileProgram(struct Compiler *compiler, struct Program *program)
         if (program->statements[i]->type == STMT_PRINT)
         {
             compileprintStatement(compiler, program->statements[i]->printSt);
+        }
+        if (program->statements[i]->type == STMT_ASSIGNMENT)
+        {
+            compileAssignment(compiler, program->statements[i]->assignment);
         }
     }
     emitByteCode(compiler, HALT);

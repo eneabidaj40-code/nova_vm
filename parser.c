@@ -249,6 +249,38 @@ struct PrintStatement *parsePrintStatement(struct Parser *parser)
     print->value = value;
     return print;
 }
+struct AssignmentStatement *parseAssignment(struct Parser *parser)
+{
+    struct Expression *expression = NULL;
+    struct AssignmentStatement *assignment;
+    char name[100];
+    strcpy(name, parser->current.lexeme);
+    if (consumeToken(parser, TOKEN_IDENTIFIER, PARSER_EXPECTED_IDENTIFIER) != 1)
+    {
+        return NULL;
+    }
+    if (consumeToken(parser, TOKEN_EQUAL, PARSER_EXPECTED_EQUAL) != 1)
+    {
+        return NULL;
+    }
+    expression = parseExpression(parser);
+    if (expression == NULL)
+    {
+        return NULL;
+    }
+    if (consumeToken(parser, TOKEN_SEMICOLON, PARSER_EXPECTED_SEMICOLON) != 1)
+    {
+        return NULL;
+    }
+    assignment = (struct AssignmentStatement *)malloc(sizeof(struct AssignmentStatement));
+    if (assignment == NULL)
+    {
+        return NULL;
+    }
+    strcpy(assignment->name, name);
+    assignment->value = expression;
+    return assignment;
+}
 struct Statement *parseStatement(struct Parser *parser)
 {
     struct Statement *statement = NULL;
@@ -283,6 +315,24 @@ struct Statement *parseStatement(struct Parser *parser)
         statement->type = STMT_PRINT;
         statement->declaration = NULL;
     }
+    else if (parser->current.type == TOKEN_IDENTIFIER)
+    {
+
+        statement = (struct Statement *)malloc(sizeof(struct Statement));
+        if (statement == NULL)
+        {
+            return NULL;
+        }
+        statement->assignment = parseAssignment(parser);
+        if (statement->assignment == NULL)
+        {
+            return NULL;
+        }
+        statement->type = STMT_ASSIGNMENT;
+        statement->printSt = NULL;
+        statement->declaration = NULL;
+    }
+
     return statement;
 }
 struct Program *parseProgram(struct Parser *parser)
@@ -296,7 +346,7 @@ struct Program *parseProgram(struct Parser *parser)
     }
     astProgram->statementCount = 0;
 
-    while (parser->current.type == TOKEN_VAR || parser->current.type == TOKEN_PRINT)
+    while (parser->current.type == TOKEN_VAR || parser->current.type == TOKEN_PRINT || parser->current.type == TOKEN_IDENTIFIER)
     {
         struct Statement *statement;
         statement = parseStatement(parser);

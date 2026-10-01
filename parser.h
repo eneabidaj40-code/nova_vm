@@ -24,7 +24,8 @@ enum ExpressionType
 enum StatementType
 {
     STMT_VAR_DECLARATION,
-    STMT_PRINT
+    STMT_PRINT,
+    STMT_ASSIGNMENT
 };
 struct Parser
 {
@@ -64,7 +65,13 @@ struct Statement
 {
     struct PrintStatement *printSt;
     struct VariableDeclaration *declaration;
+    struct AssignmentStatement *assignment;
     enum StatementType type;
+};
+struct AssignmentStatement
+{
+    char name[100];
+    struct Expression *value;
 };
 
 struct Program
