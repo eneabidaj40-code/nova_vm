@@ -75,7 +75,20 @@ void compileExpression(struct Compiler *compiler, struct Expression *expression)
         {
             emitByteCode(compiler, DIV);
         }
+        if (expression->data.binary.operator== TOKEN_EQUAL_EQUAL)
+        {
+            emitByteCode(compiler,EQUAL);
+        }
+        if (expression->data.binary.operator== TOKEN_LESS)
+        {
+            emitByteCode(compiler,LESS_THAN);
+        }
+        if (expression->data.binary.operator== TOKEN_GREATER)
+        {
+            emitByteCode(compiler,GREATER_THAN);
+        }
         break;
+        
     default:
         break;
     }

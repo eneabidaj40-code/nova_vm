@@ -17,6 +17,9 @@ enum TokenType
     TOKEN_STAR,
     TOKEN_SLASH,
     TOKEN_PRINT,
+    TOKEN_EQUAL_EQUAL,
+    TOKEN_LESS,
+    TOKEN_GREATER,
     TOKEN_ERROR
 };
 struct Token

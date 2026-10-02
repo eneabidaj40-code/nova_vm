@@ -88,6 +88,41 @@ struct Expression *parsePrimary(struct Parser *parser)
     }
     return expression;
 }
+struct Expression *parseComparison(struct Parser *parser)
+{
+    struct Expression *expression = NULL, *right = NULL, *binary = NULL;
+    enum TokenType type;
+    // parsing the left side using parseExp func
+    expression = parseExpression(parser);
+    if (expression == NULL)
+    {
+        return NULL;
+    }
+
+    while (parser->current.type == TOKEN_LESS || parser->current.type == TOKEN_GREATER || parser->current.type == TOKEN_EQUAL_EQUAL)
+    {
+        type = parser->current.type;
+        matchToken(parser, type);
+        right = parseExpression(parser);
+        if (right == NULL)
+        {
+            return NULL;
+        }
+        binary = (struct Expression *)malloc(sizeof(struct Expression));
+        if (binary == NULL)
+        {
+            printf("Failed accessing the memory\n");
+            return NULL;
+        }
+        binary->type = EXPR_BINARY;
+        binary->data.binary.left = expression;
+        binary->data.binary.operator = type;
+        binary->data.binary.right = right;
+
+        expression = binary;
+    }
+    return expression;
+}
 struct Expression *parseTerm(struct Parser *parser)
 {
     struct Expression *left;
@@ -200,7 +235,7 @@ struct VariableDeclaration *parseDeclaration(struct Parser *parser)
         return NULL;
     }
 
-    value = parseExpression(parser);
+    value = parseComparison(parser);
     if (value == NULL)
     {
         return NULL;
@@ -230,7 +265,7 @@ struct PrintStatement *parsePrintStatement(struct Parser *parser)
     {
         return NULL;
     }
-    value = parseExpression(parser);
+    value = parseComparison(parser);
     if (value == NULL)
     {
         return NULL;
@@ -263,7 +298,7 @@ struct AssignmentStatement *parseAssignment(struct Parser *parser)
     {
         return NULL;
     }
-    expression = parseExpression(parser);
+    expression = parseComparison(parser);
     if (expression == NULL)
     {
         return NULL;

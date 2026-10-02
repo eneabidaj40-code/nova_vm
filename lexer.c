@@ -128,8 +128,34 @@ struct Token scanToken(struct Lexer *lexer)
     if (inspect == '=')
     {
         advance(lexer);
-        token.type = TOKEN_EQUAL;
-        strcpy(token.lexeme, "=");
+        if (lexerPeek(lexer) == '=')
+        {
+            advance(lexer);
+            token.type = TOKEN_EQUAL_EQUAL;
+            strcpy(token.lexeme, "==");
+            token.line = lexer->line;
+        }
+        else
+        {
+            token.type = TOKEN_EQUAL;
+            strcpy(token.lexeme, "=");
+            token.line = lexer->line;
+        }
+        return token;
+    }
+    if (inspect == '<')
+    {
+        advance(lexer);
+        token.type = TOKEN_LESS;
+        strcpy(token.lexeme, "<");
+        token.line = lexer->line;
+        return token;
+    }
+    if (inspect == '>')
+    {
+        advance(lexer);
+        token.type = TOKEN_GREATER;
+        strcpy(token.lexeme, ">");
         token.line = lexer->line;
         return token;
     }
